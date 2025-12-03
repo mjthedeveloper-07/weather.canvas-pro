@@ -1,0 +1,7 @@
+{
+  "name": "Copy of WeatherCanvas Pro",
+  "description": "A futuristic, AI-powered weather card generator using Google Search trends and Gemini image generation.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
