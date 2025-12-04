@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { WeatherState } from '../types';
+import { WeatherState, WeatherCondition } from '../types';
 import { WEATHER_ICONS } from '../constants';
 import { Share2, Download, Cloud, Loader2 } from 'lucide-react';
 
@@ -22,6 +22,21 @@ export const Preview: React.FC<PreviewProps> = ({ weatherState, imageUrl, isGene
   const subTextColorClass = isLightModeImage ? 'text-slate-500' : 'text-slate-300';
   const accentColorClass = isLightModeImage ? 'text-slate-800' : 'text-white';
   const shadowClass = isLightModeImage ? '' : 'drop-shadow-lg';
+
+  // Determine Animation Class based on user request
+  const getIconAnimation = (condition: WeatherCondition) => {
+    switch (condition) {
+      case WeatherCondition.Sunny: return 'animate-sun-enhanced'; // Dynamic rotation + brightness
+      case WeatherCondition.Cloudy: return 'animate-cloud-enhanced'; // Float + breathe
+      case WeatherCondition.Rain: return 'animate-rain'; // Gentle bobbing for drops
+      case WeatherCondition.Storm: return 'animate-swirl'; // Swirling effect
+      case WeatherCondition.Snow: return 'animate-snow'; // Gentle swaying drift
+      case WeatherCondition.Fog: return 'animate-fog-enhanced'; // Blur + opacity + scale
+      default: return '';
+    }
+  };
+
+  const animationClass = getIconAnimation(weatherState.condition);
 
   const handleDownload = async () => {
     if (!imageUrl) return;
@@ -163,11 +178,15 @@ export const Preview: React.FC<PreviewProps> = ({ weatherState, imageUrl, isGene
                     {/* Main Content Overlay - Following "Chennai Example" Style */}
                     <div className="absolute inset-0 flex flex-col items-center pt-12 md:pt-16 z-10 pointer-events-none px-4">
                         
-                        {/* 1. Weather Icon Centered Above Scene */}
-                        <div className={`
-                            mb-4 md:mb-6 transform hover:scale-110 transition-transform duration-300
-                            ${isLightModeImage ? 'text-amber-500 drop-shadow-md' : 'text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]'}
-                        `}>
+                        {/* 1. Weather Icon Centered Above Scene with Animation */}
+                        <div 
+                            key={weatherState.condition} 
+                            className={`
+                                mb-4 md:mb-6 transform transition-transform duration-300
+                                ${isLightModeImage ? 'text-amber-500 drop-shadow-md' : 'text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]'}
+                                ${animationClass}
+                            `}
+                        >
                              {/* Cloning the icon to increase size and control specific styling */}
                              {React.cloneElement(WEATHER_ICONS[weatherState.condition] as React.ReactElement, { 
                                  className: "w-12 h-12 md:w-16 md:h-16", 

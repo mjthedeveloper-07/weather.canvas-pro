@@ -19,9 +19,59 @@
                 950: '#020617', // Deep dark background
               }
             },
+            keyframes: {
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-6px)' },
+              },
+              'snow-sway': {
+                '0%, 100%': { transform: 'rotate(-5deg) translateY(0)' },
+                '50%': { transform: 'rotate(5deg) translateY(2px)' },
+              },
+              'rain-bob': {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(5px)' },
+              },
+              swirl: {
+                 '0%': { transform: 'rotate(0deg)' },
+                 '100%': { transform: 'rotate(360deg)' },
+              },
+              mist: {
+                '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+                '50%': { opacity: '0.6', transform: 'scale(1.02)' },
+              },
+              'pulse-custom': {
+                '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+                '50%': { transform: 'scale(1.1)', opacity: '0.95' },
+              },
+              // New Enhanced Animations
+              'sun-dynamic': {
+                '0%': { transform: 'rotate(0deg) scale(1)', filter: 'brightness(1)' },
+                '25%': { transform: 'rotate(90deg) scale(1.1)', filter: 'brightness(1.1)' },
+                '50%': { transform: 'rotate(180deg) scale(1)', filter: 'brightness(1)' },
+                '75%': { transform: 'rotate(270deg) scale(1.1)', filter: 'brightness(1.1)' },
+                '100%': { transform: 'rotate(360deg) scale(1)', filter: 'brightness(1)' },
+              },
+              'cloud-dynamic': {
+                '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+                '50%': { transform: 'translate(4px, -4px) scale(1.05)' },
+              },
+              'fog-dynamic': {
+                '0%, 100%': { opacity: '0.8', transform: 'scale(1)', filter: 'blur(0px)' },
+                '50%': { opacity: '0.5', transform: 'scale(1.05)', filter: 'blur(2px)' },
+              }
+            },
             animation: {
-              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'spin-slow': 'spin 3s linear infinite',
+              'float': 'float 5s ease-in-out infinite',
+              'snow': 'snow-sway 4s ease-in-out infinite',
+              'rain': 'rain-bob 0.8s ease-in-out infinite',
+              'swirl': 'swirl 3s linear infinite', // Faster storm swirl
+              'mist': 'mist 4s ease-in-out infinite',
+              'pulse-slow': 'pulse-custom 3s ease-in-out infinite',
+              // New Enhanced Animation Classes
+              'sun-enhanced': 'sun-dynamic 12s linear infinite',
+              'cloud-enhanced': 'cloud-dynamic 6s ease-in-out infinite',
+              'fog-enhanced': 'fog-dynamic 5s ease-in-out infinite',
             }
           }
         }

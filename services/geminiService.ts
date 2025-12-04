@@ -5,55 +5,90 @@ import { TrendingItem, WeatherCondition, WeatherState } from "../types";
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
- * Fetches trending cities/weather using Google Search Grounding.
+ * Fetches trending cities/weather.
+ * Tries with Google Search first, falls back to basic knowledge if search fails (e.g. network/RPC errors).
  */
 export const getTrendingWeatherCities = async (): Promise<TrendingItem[]> => {
+  const promptText = "Identify 4 major global cities that are currently experiencing notable weather (storms, heatwaves, snow, etc) or are trending in search. Return ONLY a JSON list with keys 'city' and 'reason'. The 'reason' should be a short summary.";
+  
+  // 1. Try with Google Search (Live Data)
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: "Identify 4 major global cities that are currently experiencing notable weather (storms, heatwaves, snow, etc) or are trending in search. Return ONLY a JSON list with keys 'city' and 'reason'. The 'reason' should be a short summary.",
+      contents: [{ parts: [{ text: promptText }] }],
       config: {
         tools: [{ googleSearch: {} }],
-        // responseMimeType and responseSchema are not allowed with googleSearch
       }
     });
 
-    let text = response.text;
+    const text = response.text;
+    if (text) {
+        const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        // Attempt parse
+        return JSON.parse(cleaned) as TrendingItem[];
+    }
+  } catch (error) {
+    console.warn("Trending fetch with Search failed, retrying without tools...", error);
+  }
+
+  // 2. Fallback: No Tools (Basic Knowledge) if RPC/Search fails
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ parts: [{ text: promptText + " (Use your internal knowledge base to estimate current global weather trends)" }] }],
+    });
+
+    const text = response.text;
     if (!text) return [];
     
-    // Clean up markdown code blocks if present
-    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    
-    return JSON.parse(text) as TrendingItem[];
-  } catch (error) {
-    console.error("Failed to fetch trends:", error);
+    const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(cleaned) as TrendingItem[];
+  } catch (fallbackError) {
+    console.error("Failed to fetch trends (fallback):", fallbackError);
     return [];
   }
 };
 
 /**
- * Gets current weather for a specific city using Google Search Grounding.
+ * Gets current weather for a specific city.
+ * Tries with Google Search first, falls back to basic knowledge (estimate) if search fails.
  */
 export const getCityWeatherData = async (city: string): Promise<Partial<WeatherState> | null> => {
+  const promptText = `What is the current weather condition and temperature in ${city}? Return ONLY a JSON object with keys 'condition' (one of Sunny, Cloudy, Rain, Storm, Snow, Fog), 'temperature' (number), and 'unit' ('C' or 'F').`;
+
+  // 1. Try with Google Search (Live Data)
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `What is the current weather condition and temperature in ${city}? Return ONLY a JSON object with keys 'condition' (one of Sunny, Cloudy, Rain, Storm, Snow, Fog), 'temperature' (number), and 'unit' ('C' or 'F').`,
+      contents: [{ parts: [{ text: promptText }] }],
       config: {
         tools: [{ googleSearch: {} }],
-        // responseMimeType and responseSchema are not allowed with googleSearch
       }
     });
 
-    let text = response.text;
+    const text = response.text;
+    if (text) {
+        const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        return JSON.parse(cleaned) as Partial<WeatherState>;
+    }
+  } catch (error) {
+    console.warn("Weather fetch with Search failed, retrying without tools...", error);
+  }
+
+  // 2. Fallback: No Tools (Estimate)
+  try {
+     const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ parts: [{ text: promptText + " (Provide a realistic estimate based on the city's climate for this time of year)" }] }],
+    });
+    
+    const text = response.text;
     if (!text) return null;
 
-    // Clean up markdown code blocks if present
-    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-
-    return JSON.parse(text) as Partial<WeatherState>;
-  } catch (error) {
-    console.error("Failed to fetch city weather:", error);
+    const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(cleaned) as Partial<WeatherState>;
+  } catch (fallbackError) {
+    console.error("Failed to fetch city weather (fallback):", fallbackError);
     return null;
   }
 };
@@ -93,7 +128,7 @@ export const generateWeatherImage = async (state: WeatherState): Promise<string 
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
-      contents: prompt,
+      contents: [{ parts: [{ text: prompt }] }],
       config: {
         // No specific image config needed for flash-image other than defaults usually
       }
